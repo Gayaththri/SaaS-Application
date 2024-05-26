@@ -1,7 +1,11 @@
+import { SubmitButton } from "@/app/components/Submitbuttons";
+import prisma from "@/app/lib/db";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -16,8 +20,42 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 
-export default function SettingPage() {
+async function getData(userId: string) {
+  const data = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      name: true,
+      email: true,
+      colorScheme: true,
+    },
+  });
+
+  return data;
+}
+
+export default async function SettingPage() {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+  const data = await getData(user?.id as string);
+
+  async function postData(formData: FormData) {
+    "use server";
+
+    const name = formData.get("name") as string;
+    const colorScheme = formData.get("color") as string;
+
+    await prisma.user.update({
+      where: {
+        id: user?.id,
+      },
+      data: { name: name ?? undefined, colorScheme: colorScheme ?? undefined },
+    });
+  }
+
   return (
     <div className="grid items-start gap-8">
       <div className="flex items-center justify-between px-2">
@@ -28,7 +66,7 @@ export default function SettingPage() {
       </div>
 
       <Card>
-        <form>
+        <form action={postData}>
           <CardHeader>
             <CardTitle>General Data</CardTitle>
             <CardDescription>
@@ -45,6 +83,7 @@ export default function SettingPage() {
                   type="text"
                   id="name"
                   placeholder="Your Name"
+                  defaultValue={data?.name ?? undefined}
                 />
               </div>
               <div className="space-y-1">
@@ -55,12 +94,13 @@ export default function SettingPage() {
                   id="email"
                   placeholder="Your Email"
                   disabled
+                  defaultValue={data?.email as string}
                 />
               </div>
 
               <div className="space-y-1">
                 <Label>Color Scheme</Label>
-                <Select name="color">
+                <Select name="color" defaultValue={data?.colorScheme}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a color" />
                   </SelectTrigger>
@@ -80,6 +120,9 @@ export default function SettingPage() {
               </div>
             </div>
           </CardContent>
+          <CardFooter>
+            <SubmitButton />
+          </CardFooter>
         </form>
       </Card>
     </div>

@@ -9,7 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CreditCard, Home, Settings } from "lucide-react";
+import { CreditCard, DoorClosed, Home, Settings } from "lucide-react";
+import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
 
 import Link from "next/link";
 
@@ -57,6 +58,18 @@ export function UserNav() {
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="w-full flex justify-between items-center"
+          asChild
+        >
+          <LogoutLink>
+            Logout
+            <span>
+              <DoorClosed className="w-4 h-4" />
+            </span>
+          </LogoutLink>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

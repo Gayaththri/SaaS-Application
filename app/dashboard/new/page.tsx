@@ -1,4 +1,5 @@
 import { SubmitButton } from "@/app/components/Submitbuttons";
+import prisma from "@/app/lib/db";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,11 +13,36 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { redirect } from "next/navigation";
 
-export default function NewNoteRoute() {
+export default async function NewNoteRoute() {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  async function postData(formData: FormData) {
+    "use server";
+
+    if (!user) {
+      throw new Error("Not authorized");
+    }
+
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+
+    await prisma.note.create({
+      data: {
+        userId: user?.id,
+        description: description,
+        title: title,
+      },
+    });
+
+    return redirect("/dashboard");
+  }
   return (
     <Card>
-      <form action="">
+      <form action={postData}>
         <CardHeader>
           <CardTitle>New Note</CardTitle>
           <CardDescription>

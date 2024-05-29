@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 async function getData({ userId, noteId }: { userId: string; noteId: string }) {
   const data = await prisma.note.findUnique({
@@ -59,6 +60,8 @@ export default async function DynamicRoute({
         title: title,
       },
     });
+
+    revalidatePath("/dashboard");
 
     return redirect("/dashboard");
   }
